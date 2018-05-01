@@ -1,3 +1,4 @@
+import random
 import tensorflow as tf
 
 from configs import *
@@ -12,12 +13,19 @@ def _generator(Z, G_Ws, G_bs):
 
 def _discriminator_logits(X, D_Ws, D_bs):
     layer = X
-    for D_W, D_b in zip(D_Ws[:-1], D_bs[:-1]):
-        layer = tf.nn.dropout(
-            tf.nn.relu(tf.matmul(layer, D_W) + D_b), 1. - DROPOUT_RATE)
+    for idx, Dbs in enumerate(zip(D_Ws[:-1], D_bs[:-1])):
+        D_W, D_b = Dbs
+        # layer = tf.matmul(layer, D_W) + D_b
+        # activation = tf.nn.relu(layer)
+        layer = tf.matmul(layer, D_W) + D_b
+        activation = tf.contrib.layers.maxout(
+            layer,
+            D_HIDDEN_LAYER_NODE_NUMBER,
+            axis=-1, )
+        layer = tf.nn.dropout(activation, 1. - DROPOUT_RATE)
+
     D_logits = tf.matmul(layer, D_Ws[-1]) + D_bs[-1]
-    D = tf.nn.sigmoid(D_logits)
-    return D, D_logits
+    return D_logits
 
 
 def init_models():
@@ -28,13 +36,14 @@ def init_models():
     for layer_idx in range(D_HIDDEN_LAYER_NUMBER):
         if layer_idx == 0:
             i_node_number = D_INPUT_LAYER_NODE_NUMBER
-            o_node_number = D_HIDDEN_LAYER_NODE_NUMBER
+            o_node_number = D_HIDDEN_LAYER_NODE_NUMBER * MAXOUT_K
         elif layer_idx == D_HIDDEN_LAYER_NUMBER - 1:
             i_node_number = D_HIDDEN_LAYER_NODE_NUMBER
             o_node_number = 1
         else:
             i_node_number = D_HIDDEN_LAYER_NODE_NUMBER
-            o_node_number = D_HIDDEN_LAYER_NODE_NUMBER
+            o_node_number = D_HIDDEN_LAYER_NODE_NUMBER * MAXOUT_K
+
         D_Ws.append(
             tf.Variable(
                 tf.random_normal([i_node_number, o_node_number], stddev=0.01)))
@@ -57,21 +66,21 @@ def init_models():
         G_bs.append(tf.Variable(tf.zeros([o_node_number])))
 
     G = _generator(Z, G_Ws, G_bs)
-    D_fake, D_logits_fake = _discriminator_logits(G, D_Ws, D_bs)
-    D_real, D_logits_real = _discriminator_logits(X, D_Ws, D_bs)
+    D_logits_fake = _discriminator_logits(G, D_Ws, D_bs)
+    D_logits_real = _discriminator_logits(X, D_Ws, D_bs)
 
     # D_loss: loss of discriminator
     # G_loss: loss of generator
     D_loss_real = tf.reduce_mean(
         tf.nn.sigmoid_cross_entropy_with_logits(
-            logits=D_logits_real, labels=tf.ones_like(D_real)))
+            logits=D_logits_real, labels=tf.ones_like(D_logits_real)))
     D_loss_fake = tf.reduce_mean(
         tf.nn.sigmoid_cross_entropy_with_logits(
-            logits=D_logits_fake, labels=tf.zeros_like(D_fake)))
+            logits=D_logits_fake, labels=tf.zeros_like(D_logits_fake)))
     D_loss = D_loss_real + D_loss_fake
     G_loss = tf.reduce_mean(
         tf.nn.sigmoid_cross_entropy_with_logits(
-            logits=D_logits_fake, labels=tf.ones_like(D_fake)))
+            logits=D_logits_fake, labels=tf.ones_like(D_logits_fake)))
 
     D_train = tf.train.AdamOptimizer(LEARNING_RATE).minimize(
         D_loss, var_list=D_Ws + D_bs)
