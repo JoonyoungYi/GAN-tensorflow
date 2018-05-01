@@ -1,2 +1,2 @@
-# MCGAN-tensorflow
-GAN for Matrix Completion
+# GAN-tensorflow
+GAN tensorflow code.
