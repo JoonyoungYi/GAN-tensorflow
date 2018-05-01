@@ -29,29 +29,29 @@ def main():
     session = tf.Session()
     session.run(tf.global_variables_initializer())
     batch_number = int(mnist.train.num_examples / BATCH_SIZE)
-    D_E_value, G_E_value = 0.0, 0.0
+    D_loss_value, G_loss_value = 0.0, 0.0
     for epoch_idx in range(EPOCH_NUMBER):
         for batch_idx in range(batch_number):
             batch_xs, _ = mnist.train.next_batch(BATCH_SIZE)
             noise = _init_noise()
 
             for k in range(K):
-                _, D_E_value = session.run(
-                    (models['D_train'], models['D_E']),
+                _, D_loss_value = session.run(
+                    (models['D_train'], models['D_loss']),
                     feed_dict={
                         models['X']: batch_xs,
                         models['Z']: noise,
                     }, )
 
-            _, G_E_value = session.run(
-                (models['G_train'], models['G_E']),
+            _, G_loss_value = session.run(
+                (models['G_train'], models['G_loss']),
                 feed_dict={
                     models['Z']: noise,
                 }, )
 
-        msg = '[EPOCH %03d] ' % epoch_idx
-        msg += 'D_E_value: %.4f, ' % (D_E_value)
-        msg += 'G_E_value: %.4f' % (G_E_value)
+        msg = '[EPOCH%5d] ' % epoch_idx
+        msg += 'D_loss_value: %.4f, ' % (D_loss_value)
+        msg += 'G_loss_value: %.4f' % (G_loss_value)
         print(msg)
 
         if epoch_idx % 10 == 1:

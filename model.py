@@ -13,7 +13,8 @@ def generator(Z, G_Ws, G_bs):
 def discriminator(X, D_Ws, D_bs):
     layer = X
     for D_W, D_b in zip(D_Ws[:-1], D_bs[:-1]):
-        layer = tf.nn.relu(tf.matmul(layer, D_W) + D_b)
+        layer = tf.nn.dropout(
+            tf.nn.relu(tf.matmul(layer, D_W) + D_b), 1. - DROPOUT_RATE)
     return tf.nn.sigmoid(tf.matmul(layer, D_Ws[-1]) + D_bs[-1])
 
 
@@ -57,21 +58,21 @@ def init_models():
     D_fake = discriminator(G, D_Ws, D_bs)
     D_real = discriminator(X, D_Ws, D_bs)
 
-    # D_E: Expectation of discriminator
-    # G_E: Expectation of generator
-    D_E = tf.reduce_mean(tf.log(D_real) + tf.log(1 - D_fake))
-    G_E = tf.reduce_mean(tf.log(D_fake))
+    # D_loss: loss of discriminator
+    # G_loss: loss of generator
+    D_loss = tf.reduce_mean(tf.log(D_real) + tf.log(1 - D_fake))
+    G_loss = tf.reduce_mean(tf.log(D_fake))
 
     D_train = tf.train.AdamOptimizer(LEARNING_RATE).minimize(
-        -D_E, var_list=D_Ws + D_bs)
+        -D_loss, var_list=D_Ws + D_bs)
     G_train = tf.train.AdamOptimizer(LEARNING_RATE).minimize(
-        -G_E, var_list=G_Ws + G_bs)
+        -G_loss, var_list=G_Ws + G_bs)
     return {
         'X': X,
         'Z': Z,
         'G': G,
         'D_train': D_train,
-        'D_E': D_E,
+        'D_loss': D_loss,
         'G_train': G_train,
-        'G_E': G_E
+        'G_loss': G_loss
     }
