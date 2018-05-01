@@ -103,3 +103,4 @@ ENV/
 #
 images/
 mnist/
+logs/
