@@ -28,13 +28,13 @@ def init_models():
     for layer_idx in range(D_HIDDEN_LAYER_NUMBER):
         if layer_idx == 0:
             i_node_number = D_INPUT_LAYER_NODE_NUMBER
-            o_node_number = HIDDEN_LAYER_NODE_NUMBER
+            o_node_number = D_HIDDEN_LAYER_NODE_NUMBER
         elif layer_idx == D_HIDDEN_LAYER_NUMBER - 1:
-            i_node_number = HIDDEN_LAYER_NODE_NUMBER
+            i_node_number = D_HIDDEN_LAYER_NODE_NUMBER
             o_node_number = 1
         else:
-            i_node_number = HIDDEN_LAYER_NODE_NUMBER
-            o_node_number = HIDDEN_LAYER_NODE_NUMBER
+            i_node_number = D_HIDDEN_LAYER_NODE_NUMBER
+            o_node_number = D_HIDDEN_LAYER_NODE_NUMBER
         D_Ws.append(
             tf.Variable(
                 tf.random_normal([i_node_number, o_node_number], stddev=0.01)))
@@ -44,13 +44,13 @@ def init_models():
     for layer_idx in range(G_HIDDEN_LAYER_NUMBER):
         if layer_idx == 0:
             i_node_number = G_INPUT_LAYER_NODE_NUMBER
-            o_node_number = HIDDEN_LAYER_NODE_NUMBER
+            o_node_number = G_HIDDEN_LAYER_NODE_NUMBER
         elif layer_idx == G_HIDDEN_LAYER_NUMBER - 1:
-            i_node_number = HIDDEN_LAYER_NODE_NUMBER
+            i_node_number = G_HIDDEN_LAYER_NODE_NUMBER
             o_node_number = D_INPUT_LAYER_NODE_NUMBER
         else:
-            i_node_number = HIDDEN_LAYER_NODE_NUMBER
-            o_node_number = HIDDEN_LAYER_NODE_NUMBER
+            i_node_number = G_HIDDEN_LAYER_NODE_NUMBER
+            o_node_number = G_HIDDEN_LAYER_NODE_NUMBER
         G_Ws.append(
             tf.Variable(
                 tf.random_normal([i_node_number, o_node_number], stddev=0.01)))
