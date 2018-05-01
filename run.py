@@ -12,7 +12,8 @@ def _init_noise(n=BATCH_SIZE):
 
 
 def __debug_save_image(session, models, N=10):
-    samples = session.run(models['G'], feed_dict={models['Z']: _init_noise(N)})
+    samples = session.run(
+        models['G'], feed_dict={models['Z']: _init_noise(N)})
 
     for idx in range(N):
         sample = samples[idx]
